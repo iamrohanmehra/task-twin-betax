@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { TaskWithUsers, CollaboratorWithUser } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { TaskModal } from "@/components/task-modal";
-import { DeleteTaskDialog } from "./delete-task-dialog"; // TODO: fix this
+import { TaskModal } from "./task-modal";
+import { DeleteTaskDialog } from "./delete-task-dialog";
 import { Plus, Calendar, User, Edit3, Trash2, Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 

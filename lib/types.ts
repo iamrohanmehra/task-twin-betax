@@ -2,9 +2,9 @@ export interface AppUser {
   id: string;
   email: string;
   name: string;
-  is_admin: boolean;
-  created_at: string;
-  updated_at: string;
+  is_admin: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface Task {
