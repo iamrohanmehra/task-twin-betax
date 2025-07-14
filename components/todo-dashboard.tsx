@@ -252,6 +252,8 @@ export function TodoDashboard() {
   );
 }
 
+export { UserDashboard };
+
 interface UserDashboardProps {
   user: any;
   tasks: TaskWithUsers[];
