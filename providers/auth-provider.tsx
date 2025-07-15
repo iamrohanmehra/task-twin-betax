@@ -20,19 +20,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchAppUser = async (user: User | null) => {
+    if (!user) {
+      setAppUser(null);
+      return;
+    }
+
+    try {
+      const appUserData = await getCurrentAppUser();
+      setAppUser(appUserData);
+    } catch (error) {
+      console.error("Error fetching app user:", error);
+      // Retry once after a short delay
+      setTimeout(async () => {
+        try {
+          const appUserData = await getCurrentAppUser();
+          setAppUser(appUserData);
+        } catch (retryError) {
+          console.error("Retry failed for app user:", retryError);
+          setAppUser(null);
+        }
+      }, 1000);
+    }
+  };
+
   useEffect(() => {
     const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
 
-      if (session?.user) {
-        const appUserData = await getCurrentAppUser();
-        setAppUser(appUserData);
+        if (session?.user) {
+          await fetchAppUser(session.user);
+        }
+      } catch (error) {
+        console.error("Error getting session:", error);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     getSession();
@@ -43,8 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const appUserData = await getCurrentAppUser();
-        setAppUser(appUserData);
+        await fetchAppUser(session.user);
       } else {
         setAppUser(null);
       }

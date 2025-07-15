@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@/providers/auth-provider";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { isUserAuthorized } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,33 +28,91 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const { user, appUser, loading } = useAuth();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
-  const router = useRouter();
+  const [authLoading, setAuthLoading] = useState(true);
+  const prevUserId = useRef<string | null>(null);
+  const checkToken = useRef(0); // Token to track latest check
+  const pathname = usePathname();
+
+  // Reset auth state if user changes or route changes
+  useEffect(() => {
+    setAuthorized(null);
+    setAuthLoading(true);
+    prevUserId.current = user?.id ?? null;
+    checkToken.current += 1; // Invalidate previous checks
+  }, [user?.id, pathname]);
 
   useEffect(() => {
+    if (loading || authorized !== null) return;
+
+    let isActive = true;
+    const myToken = checkToken.current;
+
     const checkAuth = async () => {
-      if (loading) return;
-
       if (!user) {
-        setAuthorized(false);
+        if (isActive && myToken === checkToken.current) {
+          setAuthorized(false);
+          setAuthLoading(false);
+        }
         return;
       }
-
       if (requireAdmin && !appUser?.is_admin) {
-        setAuthorized(false);
+        if (isActive && myToken === checkToken.current) {
+          setAuthorized(false);
+          setAuthLoading(false);
+        }
         return;
       }
-
       if (requireCollaborator && user.email) {
-        const isAuth = await isUserAuthorized(user.email);
-        setAuthorized(isAuth);
+        try {
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Authorization check timeout")),
+              8000
+            )
+          );
+          const authPromise = isUserAuthorized(user.email);
+          const isAuth = (await Promise.race([
+            authPromise,
+            timeoutPromise,
+          ])) as boolean;
+          if (isActive && myToken === checkToken.current) {
+            setAuthorized(isAuth);
+          }
+        } catch (error) {
+          if (isActive && myToken === checkToken.current) {
+            setAuthorized(false);
+          }
+        } finally {
+          if (isActive && myToken === checkToken.current) {
+            setAuthLoading(false);
+          }
+        }
         return;
       }
-
-      setAuthorized(true);
+      if (isActive && myToken === checkToken.current) {
+        setAuthorized(true);
+        setAuthLoading(false);
+      }
     };
 
     checkAuth();
-  }, [user, appUser, loading, requireAdmin, requireCollaborator]);
+    return () => {
+      isActive = false;
+    };
+  }, [
+    user?.id,
+    user?.email,
+    appUser?.is_admin,
+    loading,
+    requireAdmin,
+    requireCollaborator,
+    authorized,
+    pathname,
+  ]);
+
+  useEffect(() => {
+    console.log("appUser", appUser);
+  }, [appUser]);
 
   const handleSignIn = async () => {
     try {
@@ -65,7 +123,21 @@ export function AuthGuard({
     }
   };
 
-  if (loading || authorized === null) {
+  // Add a timeout to prevent infinite loading
+  useEffect(() => {
+    if (!authLoading) return; // Don't set timeout if not loading
+    const myToken = checkToken.current;
+    const timeout = setTimeout(() => {
+      if (myToken === checkToken.current) {
+        console.warn("Auth loading timeout - forcing completion");
+        setAuthLoading(false);
+        setAuthorized(false);
+      }
+    }, 5000); // Reduced to 5 second timeout
+    return () => clearTimeout(timeout);
+  }, [authLoading]);
+
+  if (loading || authLoading || authorized === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>

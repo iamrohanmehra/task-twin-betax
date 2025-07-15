@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import {
   Select,
   SelectContent,
@@ -49,7 +51,7 @@ export function TaskModal({
     title: "",
     description: "",
     assigned_to: "",
-    due_date: "",
+    due_date: null as Date | null,
     due_time: "",
   });
 
@@ -61,7 +63,7 @@ export function TaskModal({
         title: task.title,
         description: task.description || "",
         assigned_to: task.assigned_to,
-        due_date: dueDate ? dueDate.toISOString().split("T")[0] : "",
+        due_date: dueDate,
         due_time: dueDate ? dueDate.toTimeString().slice(0, 5) : "",
       });
     } else {
@@ -70,7 +72,7 @@ export function TaskModal({
         title: "",
         description: "",
         assigned_to: appUser?.id || "",
-        due_date: "",
+        due_date: null,
         due_time: "",
       });
     }
@@ -95,8 +97,10 @@ export function TaskModal({
       let due_date = null;
       if (formData.due_date) {
         const dateTime = formData.due_time
-          ? `${formData.due_date}T${formData.due_time}:00`
-          : `${formData.due_date}T23:59:59`;
+          ? `${formData.due_date.toISOString().split("T")[0]}T${
+              formData.due_time
+            }:00`
+          : `${formData.due_date.toISOString().split("T")[0]}T23:59:59`;
         due_date = new Date(dateTime).toISOString();
       }
 
@@ -210,25 +214,23 @@ export function TaskModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="due_date">Due Date</Label>
-              <Input
-                id="due_date"
-                type="date"
-                value={formData.due_date}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, due_date: e.target.value }))
+              <DatePicker
+                date={formData.due_date}
+                onDateChange={(date) =>
+                  setFormData((prev) => ({ ...prev, due_date: date || null }))
                 }
+                placeholder="Select due date"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="due_time">Due Time</Label>
-              <Input
-                id="due_time"
-                type="time"
-                value={formData.due_time}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, due_time: e.target.value }))
+              <TimePicker
+                time={formData.due_time}
+                onTimeChange={(time) =>
+                  setFormData((prev) => ({ ...prev, due_time: time }))
                 }
-                disabled={!formData.due_date}
+                placeholder="Select due time"
+                disabled={false}
               />
             </div>
           </div>

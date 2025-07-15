@@ -292,30 +292,38 @@ function UserDashboard({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback>
+            <Avatar className="w-10 h-10 sm:w-12 sm:h-12">
+              <AvatarFallback className="text-sm sm:text-base">
                 {user.name
                   .split(" ")
                   .map((n: string) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <CardTitle className="text-xl">{user.name}</CardTitle>
-              <p className="text-sm text-gray-600">{user.email}</p>
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-lg sm:text-xl truncate">
+                {user.name}
+              </CardTitle>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
+                {user.email}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{pendingTasks.length} pending</Badge>
-            <Badge variant="secondary">{completedTasks.length} completed</Badge>
+            <Badge variant="outline" className="text-xs">
+              {pendingTasks.length} pending
+            </Badge>
+            <Badge variant="secondary" className="text-xs">
+              {completedTasks.length} completed
+            </Badge>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-auto">
+      <CardContent className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="space-y-4">
           <Button onClick={onCreateTask} className="w-full">
             <Plus className="w-4 h-4 mr-2" />
@@ -323,40 +331,50 @@ function UserDashboard({
           </Button>
 
           <div className="space-y-3">
-            <h3 className="font-semibold text-gray-700">Pending Tasks</h3>
+            <h3 className="font-semibold text-gray-700 text-sm sm:text-base">
+              Pending Tasks
+            </h3>
             {pendingTasks.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No pending tasks</p>
+              <p className="text-gray-500 text-center py-6 sm:py-8 text-sm">
+                No pending tasks
+              </p>
             ) : (
-              pendingTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  currentUser={currentUser}
-                  onEdit={() => onEditTask(task)}
-                  onDelete={() => onDeleteTask(task)}
-                  onToggleComplete={() => onToggleComplete(task)}
-                  canEdit={canEditTask(task)}
-                  canComplete={canCompleteTask(task)}
-                />
-              ))
+              <div className="space-y-2">
+                {pendingTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    currentUser={currentUser}
+                    onEdit={() => onEditTask(task)}
+                    onDelete={() => onDeleteTask(task)}
+                    onToggleComplete={() => onToggleComplete(task)}
+                    canEdit={canEditTask(task)}
+                    canComplete={canCompleteTask(task)}
+                  />
+                ))}
+              </div>
             )}
           </div>
 
           {completedTasks.length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-700">Completed Tasks</h3>
-              {completedTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  currentUser={currentUser}
-                  onEdit={() => onEditTask(task)}
-                  onDelete={() => onDeleteTask(task)}
-                  onToggleComplete={() => onToggleComplete(task)}
-                  canEdit={canEditTask(task)}
-                  canComplete={canCompleteTask(task)}
-                />
-              ))}
+              <h3 className="font-semibold text-gray-700 text-sm sm:text-base">
+                Completed Tasks
+              </h3>
+              <div className="space-y-2">
+                {completedTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    currentUser={currentUser}
+                    onEdit={() => onEditTask(task)}
+                    onDelete={() => onDeleteTask(task)}
+                    onToggleComplete={() => onToggleComplete(task)}
+                    canEdit={canEditTask(task)}
+                    canComplete={canCompleteTask(task)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -389,12 +407,12 @@ function TaskCard({
 
   return (
     <Card className={`${task.completed ? "bg-green-50 border-green-200" : ""}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2 mb-2">
               <h4
-                className={`font-medium ${
+                className={`font-medium text-sm sm:text-base flex-1 ${
                   task.completed ? "line-through text-gray-500" : ""
                 }`}
               >
@@ -403,7 +421,7 @@ function TaskCard({
               {task.completed && (
                 <Badge
                   variant="secondary"
-                  className="bg-green-100 text-green-800"
+                  className="bg-green-100 text-green-800 text-xs flex-shrink-0"
                 >
                   Completed
                 </Badge>
@@ -412,7 +430,7 @@ function TaskCard({
 
             {task.description && (
               <p
-                className={`text-sm text-gray-600 mb-2 ${
+                className={`text-xs sm:text-sm text-gray-600 mb-2 ${
                   task.completed ? "line-through" : ""
                 }`}
               >
@@ -420,10 +438,12 @@ function TaskCard({
               </p>
             )}
 
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <User className="w-3 h-3" />
-                <span>by {isCreatedByMe ? "You" : task.creator.name}</span>
+                <span>
+                  by {isCreatedByMe ? "You" : task.creator?.name || "Unknown"}
+                </span>
               </div>
               {task.due_date && (
                 <div className="flex items-center gap-1">
@@ -434,7 +454,7 @@ function TaskCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 ml-4">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {canComplete && (
               <Button
                 variant="ghost"
