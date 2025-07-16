@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import type { TaskWithUsers, CollaboratorWithUser } from "@/lib/types";
 
 export default function HomePage() {
-  const { signOut, appUser } = useAuth();
+  const { signOut, appUser, refreshAuth } = useAuth();
   const [tasks, setTasks] = useState<TaskWithUsers[]>([]);
   const [collaborators, setCollaborators] = useState<CollaboratorWithUser[]>(
     []
@@ -61,6 +61,20 @@ export default function HomePage() {
     };
     // eslint-disable-next-line
   }, [appUser, loading]); // Add loading as dependency to prevent duplicate calls
+
+  // Listen for storage changes (when admin updates collaborators)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "auth_status" && e.newValue === null) {
+        // Auth cache was cleared, refresh auth data
+        console.log("Auth cache cleared, refreshing auth data");
+        refreshAuth();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [refreshAuth]);
 
   const loadData = async (retryCount = 0) => {
     const startTime = performance.now();

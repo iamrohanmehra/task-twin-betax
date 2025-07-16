@@ -29,7 +29,7 @@ export default function AdminPage() {
 }
 
 function AdminContent() {
-  const { signOut, appUser } = useAuth();
+  const { signOut, appUser, refreshAuth } = useAuth();
   const router = useRouter();
   const [collaborators, setCollaborators] = useState<CollaboratorWithUser[]>(
     []
@@ -131,6 +131,12 @@ function AdminContent() {
       if (error3) throw error3;
 
       toast.success("Collaborators updated successfully");
+
+      // Clear auth cache for all users since collaborator settings changed
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("auth_status");
+      }
+
       loadCollaborators();
     } catch (error) {
       console.error("Error saving collaborators:", error);

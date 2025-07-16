@@ -26,40 +26,50 @@ export const getCurrentUser = async () => {
 };
 
 export const getCurrentAppUser = async (): Promise<AppUser | null> => {
-  const user = await getCurrentUser();
-  if (!user?.email) return null;
+  try {
+    const user = await getCurrentUser();
+    if (!user?.email) return null;
 
-  const { data, error } = await supabase
-    .from("app_users")
-    .select("*")
-    .eq("email", user.email)
-    .maybeSingle(); // Use maybeSingle instead of single to handle missing users
+    const { data, error } = await supabase
+      .from("app_users")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle(); // Use maybeSingle instead of single to handle missing users
 
-  if (error) {
-    console.error("Error fetching app user:", error);
+    if (error) {
+      console.error("Error fetching app user:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in getCurrentAppUser:", error);
     return null;
   }
-
-  return data;
 };
 
 export const getCollaborators = async (): Promise<CollaboratorWithUser[]> => {
-  const { data, error } = await supabase
-    .from("collaborators")
-    .select(
+  try {
+    const { data, error } = await supabase
+      .from("collaborators")
+      .select(
+        `
+        *,
+        user:app_users(*)
       `
-      *,
-      user:app_users(*)
-    `
-    )
-    .order("position");
+      )
+      .order("position");
 
-  if (error) {
-    console.error("Error fetching collaborators:", error);
+    if (error) {
+      console.error("Error fetching collaborators:", error);
+      return [];
+    }
+
+    return data as CollaboratorWithUser[];
+  } catch (error) {
+    console.error("Error in getCollaborators:", error);
     return [];
   }
-
-  return data as CollaboratorWithUser[];
 };
 
 export const isUserAuthorized = async (email: string): Promise<boolean> => {
@@ -80,7 +90,7 @@ export const isUserAuthorized = async (email: string): Promise<boolean> => {
 
     if (userError) {
       console.error("Error checking user:", userError);
-      throw userError;
+      return false; // Return false instead of throwing
     }
 
     if (!user) {
@@ -108,7 +118,7 @@ export const isUserAuthorized = async (email: string): Promise<boolean> => {
 
     if (collabError) {
       console.error("Error checking collaborator status:", collabError);
-      throw collabError;
+      return false; // Return false instead of throwing
     }
 
     const isAuthorized = !!collaborator;
@@ -121,7 +131,7 @@ export const isUserAuthorized = async (email: string): Promise<boolean> => {
     return isAuthorized;
   } catch (error) {
     console.error("Error checking user authorization:", error);
-    throw error; // Re-throw to let the calling code handle it
+    return false; // Return false instead of throwing
   }
 };
 

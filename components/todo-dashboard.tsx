@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CardNew,
+  CardContentNew,
+  CardHeaderNew,
+  CardTitleNew,
+} from "@/components/ui/cardNew";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -406,8 +412,10 @@ function TaskCard({
   const isAssignedToMe = task.assigned_to === currentUser?.id;
 
   return (
-    <Card className={`${task.completed ? "bg-green-50 border-green-200" : ""}`}>
-      <CardContent className="p-3 sm:p-4">
+    <CardNew
+      className={`${task.completed ? "bg-green-50 border-green-200" : ""}`}
+    >
+      <CardContentNew className="p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2 mb-2">
@@ -492,7 +500,7 @@ function TaskCard({
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </CardContentNew>
+    </CardNew>
   );
 }

@@ -32,7 +32,9 @@ export function TimePicker({
   React.useEffect(() => {
     if (time) {
       const [hours, minutes] = time.split(":").map(Number);
-      setSelectedHour(hours);
+      // Convert 24-hour to 12-hour for display
+      const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+      setSelectedHour(displayHour);
       setSelectedMinute(minutes);
       setIsAM(hours < 12);
     } else {
@@ -43,7 +45,15 @@ export function TimePicker({
   }, [time]);
 
   const handleTimeSelect = (hour: number, minute: number) => {
-    const formattedHour = hour.toString().padStart(2, "0");
+    // Convert 12-hour display format to 24-hour format for output
+    let outputHour = hour;
+    if (!isAM && hour !== 12) {
+      outputHour = hour + 12;
+    } else if (isAM && hour === 12) {
+      outputHour = 0;
+    }
+
+    const formattedHour = outputHour.toString().padStart(2, "0");
     const formattedMinute = minute.toString().padStart(2, "0");
     const timeString = `${formattedHour}:${formattedMinute}`;
     onTimeChange?.(timeString);
@@ -67,15 +77,7 @@ export function TimePicker({
     const newIsAM = !isAM;
     setIsAM(newIsAM);
     if (selectedHour !== null && selectedMinute !== null) {
-      let newHour = selectedHour;
-      if (newIsAM && selectedHour >= 12) {
-        newHour = selectedHour - 12;
-      } else if (!newIsAM && selectedHour < 12) {
-        newHour = selectedHour + 12;
-      }
-      if (newHour === 0) newHour = 12;
-      if (newHour === 24) newHour = 12;
-      handleTimeSelect(newHour, selectedMinute);
+      handleTimeSelect(selectedHour, selectedMinute);
     }
   };
 
@@ -90,7 +92,7 @@ export function TimePicker({
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-  const scrollableStyle = {
+  const scrollableContainerStyle = {
     height: "128px",
     width: "64px",
     border: "1px solid #e5e7eb",
@@ -99,6 +101,10 @@ export function TimePicker({
     overflowY: "auto" as const,
     scrollbarWidth: "thin" as const,
     scrollbarColor: "#d1d5db #f3f4f6",
+    scrollBehavior: "smooth" as const,
+    // Add these properties for better scroll behavior
+    position: "relative" as const,
+    zIndex: 1,
   };
 
   return (
@@ -126,18 +132,21 @@ export function TimePicker({
               <div className="text-xs font-medium text-muted-foreground text-center">
                 Hour
               </div>
-              <div style={scrollableStyle}>
+              <div
+                style={scrollableContainerStyle}
+                className="scroll-container"
+                tabIndex={0}
+              >
                 {hours.map((hour) => {
-                  const displayHour = isAM ? hour : hour + 12;
-                  const isSelected = selectedHour === displayHour;
+                  const isSelected = selectedHour === hour;
                   return (
                     <div
                       key={hour}
                       className={cn(
-                        "px-2 py-1 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors text-sm select-none",
+                        "px-2 py-1 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors text-sm select-none min-h-[24px] flex items-center justify-center",
                         isSelected && "bg-primary text-primary-foreground"
                       )}
-                      onClick={() => handleHourClick(displayHour)}
+                      onClick={() => handleHourClick(hour)}
                     >
                       {hour}
                     </div>
@@ -151,14 +160,18 @@ export function TimePicker({
               <div className="text-xs font-medium text-muted-foreground text-center">
                 Minute
               </div>
-              <div style={scrollableStyle}>
+              <div
+                style={scrollableContainerStyle}
+                className="scroll-container"
+                tabIndex={0}
+              >
                 {minutes.map((minute) => {
                   const isSelected = selectedMinute === minute;
                   return (
                     <div
                       key={minute}
                       className={cn(
-                        "px-2 py-1 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors text-sm select-none",
+                        "px-2 py-1 text-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors text-sm select-none min-h-[24px] flex items-center justify-center",
                         isSelected && "bg-primary text-primary-foreground"
                       )}
                       onClick={() => handleMinuteClick(minute)}
