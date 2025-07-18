@@ -283,6 +283,8 @@ function UserDashboard({
   canEditTask,
   canCompleteTask,
 }: UserDashboardProps) {
+  const [showCompleted, setShowCompleted] = useState(false);
+
   if (!user) {
     return (
       <Card className="h-full">
@@ -295,9 +297,13 @@ function UserDashboard({
 
   const completedTasks = tasks.filter((t) => t.completed);
   const pendingTasks = tasks.filter((t) => !t.completed);
+  const currentTasks = showCompleted ? completedTasks : pendingTasks;
+  const currentTaskCount = showCompleted
+    ? completedTasks.length
+    : pendingTasks.length;
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -329,48 +335,56 @@ function UserDashboard({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="space-y-4">
-          <Button onClick={onCreateTask} className="w-full">
+      <CardContent className="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden">
+        {currentUser?.id === user.id && (
+          <Button onClick={onCreateTask} className="w-full flex-shrink-0 mb-4">
             <Plus className="w-4 h-4 mr-2" />
             Create Task
           </Button>
+        )}
 
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-700 text-sm sm:text-base">
-              Pending Tasks
-            </h3>
-            {pendingTasks.length === 0 ? (
-              <p className="text-gray-500 text-center py-6 sm:py-8 text-sm">
-                No pending tasks
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {pendingTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    currentUser={currentUser}
-                    onEdit={() => onEditTask(task)}
-                    onDelete={() => onDeleteTask(task)}
-                    onToggleComplete={() => onToggleComplete(task)}
-                    canEdit={canEditTask(task)}
-                    canComplete={canCompleteTask(task)}
-                  />
-                ))}
-              </div>
-            )}
+        {/* Task Toggle */}
+        <div className="flex items-center justify-center mb-4">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setShowCompleted(false)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+                !showCompleted
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Pending ({pendingTasks.length})
+            </button>
+            <button
+              onClick={() => setShowCompleted(true)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+                showCompleted
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Completed ({completedTasks.length})
+            </button>
           </div>
+        </div>
 
-          {completedTasks.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-gray-700 text-sm sm:text-base">
-                Completed Tasks
-              </h3>
-              <div className="space-y-2">
-                {completedTasks.map((task) => (
+        {/* Task List */}
+        <div className="flex-1 flex flex-col min-h-0 max-h-full">
+          <h3 className="font-semibold text-gray-700 text-sm sm:text-base flex-shrink-0 mb-3">
+            {showCompleted ? "Completed" : "Pending"} Tasks ({currentTaskCount})
+          </h3>
+          {currentTaskCount === 0 ? (
+            <div className="flex-1 flex items-center justify-center min-h-[200px]">
+              <p className="text-gray-500 text-center text-sm">
+                No {showCompleted ? "completed" : "pending"} tasks
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto pr-2 space-y-2 scroll-container min-h-0 w-full max-h-full">
+              {currentTasks.map((task) => (
+                <div key={task.id} className="w-full">
                   <TaskCard
-                    key={task.id}
                     task={task}
                     currentUser={currentUser}
                     onEdit={() => onEditTask(task)}
@@ -379,8 +393,8 @@ function UserDashboard({
                     canEdit={canEditTask(task)}
                     canComplete={canCompleteTask(task)}
                   />
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -413,11 +427,13 @@ function TaskCard({
 
   return (
     <CardNew
-      className={`${task.completed ? "bg-green-50 border-green-200" : ""}`}
+      className={`w-full ${
+        task.completed ? "bg-green-50 border-green-200" : ""
+      }`}
     >
       <CardContentNew className="p-3 sm:p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-3 w-full">
+          <div className="flex-1 min-w-0 max-w-full">
             <div className="flex items-start gap-2 mb-2">
               <h4
                 className={`font-medium text-sm sm:text-base flex-1 ${

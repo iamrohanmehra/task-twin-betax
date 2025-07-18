@@ -267,7 +267,7 @@ export default function HomePage() {
 
   return (
     <AuthGuard requireCollaborator>
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
         {/* Header */}
         <div className="bg-white border-b px-4 sm:px-6 py-4 w-full shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -339,12 +339,12 @@ export default function HomePage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4">
-          <div className="max-w-6xl mx-auto">
+        <div className="flex-1 p-4 overflow-hidden">
+          <div className="max-w-6xl mx-auto h-full">
             {/* Desktop Layout */}
-            <div className="hidden lg:flex gap-6">
+            <div className="hidden lg:flex gap-6 h-full">
               {/* Dashboard A */}
-              <div className="flex-1">
+              <div className="flex-1 h-full">
                 <UserDashboard
                   user={user1}
                   tasks={user1 ? getTasksForUser(user1.id) : []}
@@ -358,7 +358,7 @@ export default function HomePage() {
                 />
               </div>
               {/* Dashboard B */}
-              <div className="flex-1">
+              <div className="flex-1 h-full">
                 <UserDashboard
                   user={user2}
                   tasks={user2 ? getTasksForUser(user2.id) : []}
@@ -374,7 +374,7 @@ export default function HomePage() {
             </div>
 
             {/* Mobile Layout */}
-            <div className="lg:hidden">
+            <div className="lg:hidden h-full">
               {selected === "A" && (
                 <UserDashboard
                   user={user1}
